@@ -1,6 +1,6 @@
 # 🏎️ F1_DASHBOARD
 
-**F1_DASHBOARD** es una aplicación desarrollada con **Streamlit** que utiliza datos en tiempo real desde la [API OpenF1](https://www.openf1.org/), con el objetivo de mostrar estadísticas actualizadas de pilotos y equipos durante las sesiones de Fórmula 1 (qualis, carreras, etc.). El dashboard se actualiza cada 5 segundos para obtener los resultados más recientes posibles.
+[**F1_DASHBOARD**](https://f1dashhboard.streamlit.app/) es una aplicación desarrollada con **Streamlit** que utiliza datos en tiempo real desde la [API OpenF1](https://www.openf1.org/), con el objetivo de mostrar estadísticas actualizadas de pilotos y equipos durante las sesiones de Fórmula 1 (qualis, carreras, etc.). El dashboard se actualiza cada 5 segundos para obtener los resultados más recientes posibles.
 
 ```
 F1_DASHBOARD/
