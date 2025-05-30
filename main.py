@@ -4,7 +4,7 @@ from utils import color_compound, get_data, render_pilot_box, color_time, format
 from streamlit_autorefresh import st_autorefresh
 
 
-st_autorefresh(interval=10000, key="datarefresh")  # Se actualiza cada 10 segundos
+st_autorefresh(interval=5000, key="datarefresh")  # Se actualiza cada 5 segundos
 
 # Obtener la sesión más reciente
 df_sessions = get_data("sessions")
