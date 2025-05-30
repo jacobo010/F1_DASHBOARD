@@ -1,13 +1,14 @@
 # 🏎️ F1_DASHBOARD
 [**F1_DASHBOARD**](https://f1dashhboard.streamlit.app/) is a web application built with **Streamlit** that uses real-time data from the [OpenF1 API](https://www.openf1.org/) to display up-to-date statistics about drivers and teams during Formula 1 sessions (qualifying, races, etc.). The dashboard refreshes every 5 seconds to provide the most recent results possible.
 
+```
 F1_DASHBOARD/
 │
 ├── main.py # Main dashboard code
 ├── utils.py # Helper functions (colors, data, driver rendering)
 ├── README.md # This file
 └── requirements.txt # Project dependencies
-
+```
 ---
 
 ## Preview
