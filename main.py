@@ -1,11 +1,10 @@
 import streamlit as st
 import pandas as pd
-from utils import color_compound, get_data, render_pilot_box, color_time, format_gap_to_leader
+from utils import color_compound, get_data, render_pilot_box, color_time, format_gap_to_leader, team_colors
+import matplotlib.pyplot as plt
 from streamlit_autorefresh import st_autorefresh
 
-
-st_autorefresh(interval=5000, key="datarefresh")  # Se actualiza cada 5 segundos
-
+st_autorefresh(interval = 7000, key = "datarefresh")  # Actualizar cada 7 segundos
 # Obtener la sesión más reciente
 df_sessions = get_data("sessions")
 df_sessions["date_start"] = pd.to_datetime(df_sessions["date_start"], errors='coerce')
@@ -19,21 +18,34 @@ meeting_key = latest_session["meeting_key"]
 params = {"session_key": session_key}
 driver_params = {"meeting_key": meeting_key}
 
+# Título del dashboard
 st.markdown(f"""
 <h1 style='text-align: center; font-size: 30px; font-weight: bold;'>
-    Dashboard F1 – {latest_session['year']} {latest_meeting['meeting_name']} ({latest_session['session_name']}) </h1>""", unsafe_allow_html=True)
+    Dashboard F1 – {latest_session['year']} {latest_meeting['meeting_name']} ({latest_session['session_name']})
+</h1>
+""", unsafe_allow_html=True)
 
 # Carga de datos
 df_drivers = get_data("drivers", params=driver_params).drop_duplicates(subset=["name_acronym"])
 df_laps = get_data("laps", params=params)
 df_positions = get_data("position", params=params)
 df_stints = get_data("stints", params=params)
-df_intervals = get_data("intervals", params=params)
 
-# Preprocesar df_intervals
-df_intervals["date"] = pd.to_datetime(df_intervals["date"], errors="coerce")
-df_intervals = df_intervals.sort_values(by="date", ascending=False)
-df_intervals = df_intervals.drop_duplicates(subset=["driver_number"], keep="first")
+# Verificar si la sesión es una carrera
+is_race = latest_session["session_type"] == "Race"
+
+# Solo cargar intervalos si es carrera
+if is_race:
+    df_intervals = get_data("intervals", params=params)
+    if df_intervals.empty:
+        st.info("No hay datos de intervalos disponibles para esta carrera.")
+    else:
+        df_intervals["date"] = pd.to_datetime(df_intervals["date"], errors="coerce")
+        df_intervals = df_intervals.sort_values(by="date", ascending=False)
+        df_intervals = df_intervals.drop_duplicates(subset=["driver_number"], keep="first")
+else:
+    df_intervals = pd.DataFrame()
+    st.info("La sesión seleccionada no es una carrera. Intervalos no disponibles.")
 
 # Preprocesar df_laps
 df_laps["date_start"] = pd.to_datetime(df_laps["date_start"], errors="coerce")
@@ -61,13 +73,18 @@ if all("driver_number" in df.columns for df in [df_laps, df_positions, df_stints
     df_merged = df_drivers.merge(df_laps, on="driver_number", how="left")
     df_merged = df_merged.merge(df_positions, on="driver_number", how="left", suffixes=("", "_pos"))
     df_merged = df_merged.merge(df_stints, on="driver_number", how="left", suffixes=("", "_stint"))
-    df_merged = df_merged.merge(df_intervals, on=["driver_number"], how="left", suffixes=("", "_interval"))
+
+    if is_race and not df_intervals.empty:
+        df_merged = df_merged.merge(df_intervals, on=["driver_number"], how="left", suffixes=("", "_interval"))
 
     df_merged = df_merged.sort_values(by=["position", "lap_number", "date_start"], ascending=[True, False, True])
     df_merged = df_merged.drop_duplicates(subset="driver_number", keep="first")
 
-    # Aplicar función para mostrar gap_to_leader formateado
-    df_merged["gap_to_leader"] = df_merged.apply(lambda row: format_gap_to_leader(row["gap_to_leader"], row["laps_completed"], max_laps), axis=1)
+    # Aplicar formato solo si existe gap_to_leader
+    if "gap_to_leader" in df_merged.columns:
+        df_merged["gap_to_leader"] = df_merged.apply(
+            lambda row: format_gap_to_leader(row["gap_to_leader"], row["laps_completed"], max_laps), axis=1
+        )
 
     columnas_deseadas = [
         "name_acronym", "driver_number", "position", "compound",
@@ -76,6 +93,10 @@ if all("driver_number" in df.columns for df in [df_laps, df_positions, df_stints
     ]
     columnas_disponibles = df_merged.columns.tolist()
     columnas_finales = [col for col in columnas_deseadas if col in columnas_disponibles]
+
+    # Eliminar filas con valores nulos críticos
+    columnas_criticas = ["team_name", "laps_completed", "compound"]
+    df_merged = df_merged.dropna(subset=[col for col in columnas_criticas if col in df_merged.columns])
 
     df = df_merged[columnas_finales]
     df["compound"] = df["compound"].apply(color_compound)
@@ -95,19 +116,19 @@ if all("driver_number" in df.columns for df in [df_laps, df_positions, df_stints
         'duration_sector_2': 'S2',
         'duration_sector_3': 'S3',
         'team_name': 'Team',
+        'lap_duration': 'lap_time'
     })
 
-
+# Estilo HTML para la tabla
 st.markdown("""
 <style>
-/* Estilo base */
 table, thead, tbody, tr, th, td {
     border: none !important;
 }
 table {
     border-collapse: collapse !important;
     border-spacing: 0 !important;
-    margin: 0 auto !important;  /* Esto centra la tabla */
+    margin: 0 auto !important;
 }
 td, th {
     text-align: center !important;
@@ -117,15 +138,11 @@ td, th {
     padding: 6px 10px !important;
     font-size: 20px;
 }
-
-/* Wrapper general para centrar toda la tabla */
 .table-container {
     display: flex;
     justify-content: center;
     width: 100%;
 }
-
-/* Responsive */
 @media screen and (max-width: 1024px) {
     td, th {
         font-size: 12px !important;
@@ -142,6 +159,7 @@ td, th {
 </style>
 """, unsafe_allow_html=True)
 
+# Renderizar tabla
 st.markdown(f"""
 <div class="table-container">
     <div class="responsive-table-inner">
@@ -149,4 +167,3 @@ st.markdown(f"""
     </div>
 </div>
 """, unsafe_allow_html=True)
-
