@@ -1,7 +1,6 @@
 import streamlit as st
 import pandas as pd
 from utils import color_compound, get_data, render_pilot_box, color_time, format_gap_to_leader, team_colors
-import matplotlib.pyplot as plt
 from streamlit_autorefresh import st_autorefresh
 
 st_autorefresh(interval=7000, key="datarefresh")
