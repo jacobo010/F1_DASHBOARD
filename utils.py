@@ -6,15 +6,24 @@ import requests
 # Función para obtener datos de la API
 def get_data(endpoint, params=None):
     base_url = "https://api.openf1.org/v1/"
-    response = requests.get(base_url + endpoint, params=params)
-    if response.status_code == 200:
-        return pd.DataFrame(response.json())
-    else:
+    try:
+        response = requests.get(base_url + endpoint, params=params)
+        response.raise_for_status()  # Lanza error si no es 200
+        data = response.json()
+        if isinstance(data, list) and len(data) > 0:
+            return pd.DataFrame(data)
+        else:
+            print(f"[INFO] El endpoint '{endpoint}' devolvió una lista vacía.")
+            return pd.DataFrame()
+    except Exception as e:
+        print(f"[ERROR] Fallo al obtener datos de '{endpoint}': {e}")
         return pd.DataFrame()
 
 # Funcuón para aplicar color a los compuestos de neumáticos
 # utils.py
 def color_compound(val):
+    if pd.isna(val):
+        return "grey"
     color_map = {
         "SOFT": "red",
         "MEDIUM": "orange",
