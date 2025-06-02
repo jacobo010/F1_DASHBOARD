@@ -22,6 +22,8 @@ The app features a **real-time dashboard** displaying:
 - Gap to the leader (`gap_to_leader`)  
 - Laps completed  
 
+![image](https://github.com/user-attachments/assets/9b6bdbb4-5448-4aec-a0cf-130185c5f002)
+
 ---
 
 ## Technologies used
@@ -78,6 +80,8 @@ La aplicación presenta un **dashboard en tiempo real** con:
 - Posición en pista
 - Diferencia con el líder (`gap_to_leader`)
 - Vueltas completadas
+
+![image](https://github.com/user-attachments/assets/8d01202f-5cc0-4a56-abbd-7a75a00e1924)
 
 ---
 
